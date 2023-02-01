@@ -1,0 +1,565 @@
+---
+title: "STAT 4255 Final Project"
+author: "Emily Briggs, Jessica Zambuto"
+date: "12/12/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# STAT4255 Project- Diabetes Prediction  
+  
+## Report  
+### Introduction:
+Diabetes is a chronic health condition that affects millions of people 
+globally. It is a disease that occurs when the body cannot properly produce 
+insulin to break down glucose in the bloodstream. For clinical practice, it is 
+important to understand the factors that can determine whether or not an individual has 
+diabetes. Certain characteristics can make someone more likely to develop type 2
+diabetes, and we would like to analyze those predictors in this report. 
+Furthermore, we would like to find the most appropriate model that will classify 
+whether or not someone is likely to have diabetes, given a certain set of 
+predictors.  
+  
+For our project, we looked at the "Diabetes Dataset" from user Akshay 
+Dattatray Khare on Kaggle. It was pulled from a larger dataset created by the
+National Institute of Diabetes and Digestive and Kidney Diseases. In this 
+smaller dataset that we will be using, only females aged 21 and older of Pima
+Indian heritage were included. The data set contains 768 observations of 9 
+variables. 8 of the variables are independent, and only one is dependent- the 
+Outcome variable. The variables are, as follows:  
+- Pregnancies -  Number of pregnancies  
+- Glucose - the Glucose level in blood  
+- Blood Pressure - the Blood pressure measurement  
+- SkinThickness - the thickness of the skin  
+- Insulin - the Insulin level in blood  
+- BMI - Body mass index  
+- DiabetesPedigreeFunction - function which scores likelihood of diabetes based
+on family history  
+- Age - age of the patient  
+- Outcome - To express the final result (1 is Yes = positive for diabetes and 0 
+is No = negative for diabetes)  
+These variables are all specific to each patient, and each row in the dataset 
+represents one patient.  
+  
+This data is supervised. We have a set of predictors that presumably lead us to
+a certain outcome. In this case, Y is the outcome measurement and takes on a 
+finite, unordered set (e.g diagnosed with diabetes or not diagnosed). We will
+split the dataset into training data and test data. On the basis of the 
+training data, we aim to accurately predict unseen test cases, understand which 
+inputs affect the outcome, and how, and assess the quality of our predictions 
+and inferences. This is also a classification problem. We want to  build a 
+function C(X) that takes as input the feature vector X and predicts its value 
+for Y (whether or not the person has diabetes).  
+
+### Exploratory Analysis  
+Before attempting to model the data, our first step was to perform a preliminary
+exploratory analysis, and cleanse the data if necessary. We found that there 
+were indeed 9 variables with 768 total observations. We also noticed that all of
+the variables are numerical types, including the Outcome (dependent) variable. 
+For now, this is okay, but in later modeling methods we will factorize Outcome 
+into a binary response variable. Upon further exploratory analysis, I noticed a 
+slight problem. Although there was not any null values in the data set, it 
+appeared that missing data had instead been coded as '0'. For variables such as 
+BMI and Age, this does not make sense. Therefore, I removed observations 
+containing a 0 for any of the variables in order the clean the data. We were left 
+with 392 observations. Out of these 392 observations, our constructed bar chart
+shows that there were 262 outcomes of '0' (patient did not have diabetes) and 130
+outcomes of '1' (patient did have diabetes).  
+```{r echo=FALSE, out.width = "70%"}
+knitr::include_graphics("bar_chart.png")
+```
+
+
+### Modeling  
+For the purpose of this project, the main question we were trying to answer is:
+What model has the highest prediction accuracy for classifying whether or not an
+individual has diabetes? To do this, we will look at 9 classification methods/models: 
+linear regression, best subset selection, logistic regression, LDA, QDA, Naive 
+Bayes', K-nearest neighbors, classification trees, and generalized boosted regression. 
+Our plan is to create each of these statistical models using our data, and then 
+create a testing and training set to determine the prediction accuracy. From there, 
+we will compare between the models and decide on the best fit for this data.  
+
+### Linear Regression  
+
+One approach we used to answer our question was multiple linear regression. We used this because there was more than one predictor variable of interest and it would produce a model that could be used to predict the likelihood of someone developing diabetes based on certain risk factors. This approach could be used because our response variable was binary, there was a linear relationship between the independent and dependent variables (as shown in the scatter plots), the residuals were assumed to be normally distributed, and there was no presence of collinearity. Collinearity was checked by calculating the variance influential factors. All values were between 1 and 2 indicating moderate correlation between variables, but since they were all less than 5, all variables could be used in the model. R calculated the regression coefficient estimates using values that minimized the RSS. The P-values for the F-Statistics were also calculated in order to determine which variables were statistically significant. In this case, glucose, BMI, diabetes pedigree function, and age were significant as they all had a p-value less than .05 and thus, should be included in the model.
+    
+### Best Subset  
+
+In order to determine the best model, we also used best subset selection. Adjusted $R^2$ was calculated and used to select the best model size, which was 5 variables. A graph was produced to demonstrate that the greatest $R^2$ value corresponded to 5 variables. However, it should be noted that this $R^2$ of .335 is very small, indicating that multiple linear regression may not be an appropriate model for the data. BIC was also calculated to determine how many predictor variables should be used to produce the best model and the corresponding coefficient estimates.  
+
+### Logistic Regression  
+
+Logistic regression is a well-liked method for classification analysis, because p(X) will 
+always have a value between 0 and 1, making it more easy to distinguish whether or not there 
+is success. To fit the model, we used the glm function, which fits logistic regression 
+models by maximum likelihood. We first fit a model using all 8 predictors, and then determined
+that the two most significant predictors were Glucose and DiabetesPedigreeFunction (lowest p-values).
+From there, we fit a reduced model using those predictors, and then split the data into a training and
+test set (70% training, 30% testing). With this split data, we determined a prediction accuracy of 
+.805 for the reduced logistic regression model. A decision boundary is also shown in the appendix.  
+  
+### LDA  
+
+Linear Discriminant Analysis is a linear model for classification and dimensionality reduction.
+It focuses on maximizing the separability among known categories from the data. 
+To classify at the value X = x, this method works by assigning x to the class with the
+largest discriminant score. Mathematically, this score is calculated using Gaussian density
+and plugging it into Bayes formula. LDA focuses on maximizing the distance between means
+and minimizing scatter within each category. In our analysis, we used the lda function
+from the MASS package to build our LDA model. We included an ROC curve, which indicated 
+fairly good performance (curve is close to top left corner). We then used our reduced model and  split data to calculate prediction accuracy, which came out to be .805, exactly the same as the logisitic 
+regression model.  
+
+###  QDA  
+
+Another approach we used was quadratic discriminant analysis in which it was assumed that the observations within each class were drawn from a multivariate Gaussian distribution and each class had its own covariate matrix. When there is substantial separation between two classes, the parameter estimates for the logistic regression model are unstable, but QDA does not suffer from this problem, so we wanted to see if this model would be more accurate. The two variables of interest were glucose and diabetes pedigree function since they had the most significant p-values from the logistic regression analysis. The prediction accuracy, .7966, was slightly lower than that of the linear discriminant analysis.  
+
+### Naive Bayes  
+
+We also were interested in using the naive bayes classifier to determine the best model for the data. This approach assumes that within the kth class, the p predictors are independent. This typically works best when n is not large enough relative to p to effectively estimate the joint distribution of the predictors within each class. It also reduces variance, so we thought this method would be appropriate. This method produced the same prediction accuracy and decision boundary as the QDA method.  
+
+### KNN  
+
+K nearest neighbors is a nonparametric method in which given a value for K and a prediction point $x_0$ KNN regression first identifies the K training observations that are closest to $x_{0}$ represented by $N_{0}$. It then estimates f($x_0$) using the average of all the training responses in $N_0$. KNN involves classifying a data point by looking at the nearest annotated data point, also known as the nearest neighbor. We divided the data into a training and test set. The test set was categorized using the k-nearest neighbors algorithm and compared to the training set to see how well the model performed. When K=3, the prediction accuracy was the highest, at .763.  
+
+### Classification Trees  
+Tree-based methods involve stratifying or segmenting the predictor space into a number of
+regions, which help classify the data. For a classification tree, we predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs.
+To grow a classification tree, we use recursive binary splitting. In our analysis, we used functions from the tree package to build and prune our decision tree for diabetes outcome. Using the split data, we ended up having a pruned treewith 12 nodes, and a prediction accuracy of .814, the highest of any of the methods we used. We also used boosting on this data.  
+  
+### Summary of Final Results  
+We will now look at an executive summary of the predictive power (prediction accuracy)
+of each model we used to predict whether or not an individual has diabetes:  
++ Linear Regression: adjusted $R^2$ = .332  
++ Best Subset Selection: adjusted $R^2$ = .335  
++ Logistic Regression: prediction accuracy = .805  
++ Linear Discriminant Analysis: prediction accuracy = .805  
++ Quadratic Discriminant Analysis: prediction accuracy = .797  
++ Naive Bayes: prediction accuracy = .797  
++ K-Nearest Neighbours: prediction accuracy = .763  
++ Classification Trees: prediction accuracy = .813  
+  
+### Final Approach  
+Based on prediction accuracies, we decided to use classification trees as our final approach. 
+Classification trees have several advantages over other methods. They are very simple to 
+visualize and make sense of, and easy to explain to others. From a medical standpoint, this 
+could be a useful model in clinical practice because of its simplicity. Additionally, trees 
+closely mirror human decision-making, allowing for easier comprehension. They can be
+displayed graphically, and can easily handle qualitative variables, without the need to 
+create dummy variables. There is concern that trees generally do not have the same level 
+of predictive accuracy as other methods, but we can see from our results that the 
+classification tree actually had the highest level of predictive accuracy for our diabetes 
+data. For these reasons, we decided on the classification tree with 12 branches as our chosen
+model to predict whether or not an individual has diabetes, given our set of 8 predictor 
+variables. We should note here that some of the prediction accuracies calculated above 
+were from models containing all of the predictors, while others only used Glucose and
+DiabetesPedigreeFunction. We still stand by our results, because we noticed that going 
+from the full model to the reduced model in most cases only slightly changed the prediction 
+accuracy. The tree we have chosen as our method for classification can be pictured as follows:  
+```{r echo=FALSE, out.width = "70%"}
+knitr::include_graphics("chosen_tree.png")
+```
+  
+### Conclusion  
+In conclusion, after observing a selection of classification methods and fitting various
+models to our data, we have decided that using a classification tree with 12 branches will result 
+in the highest prediction accuracy. Especially in clinical practice, it is extremely important
+to have predictive accuracy. When giving someone a diagnosis that could potentially have a huge 
+impact on the course of their life is an enormous responsibility, and care should be taken
+to reduce error as much as possible. False negatives or false positives in a clinical setting 
+could be disastrous. That is why we went with the model that is easy to comprehend and share with
+others, as well as the model with the highest predictive accuracy. We should note that a limitation 
+of our data set is that they only looked at women over age 21 of Pima Indian heritage, so extrapolations to other groups of people should be done with caution.  
+\newpage 
+
+
+## Appendix  
+### Exploratory Analysis  
+```{r}
+library(readr)
+diabetes <- read.csv('diabetes.csv')
+
+head(diabetes, 10) 
+
+dim(diabetes)
+
+names(diabetes)
+
+str(diabetes)
+
+summary(diabetes)
+
+unique(diabetes$Pregnancies)
+
+diabetes$age
+
+sum(is.na(diabetes))
+
+diabetes = diabetes[diabetes$BloodPressure !=0, ]
+diabetes = diabetes[diabetes$Glucose !=0, ]
+diabetes = diabetes[diabetes$SkinThickness !=0, ]
+diabetes = diabetes[diabetes$Insulin !=0, ]
+diabetes = diabetes[diabetes$BMI !=0, ]
+diabetes = diabetes[diabetes$Age !=0, ]
+diabetes = diabetes[diabetes$DiabetesPedigreeFunction !=0, ]
+dim(diabetes)
+
+#Bar chart
+library(ggplot2)
+
+(ggplot(diabetes, aes(factor(Outcome), fill=factor(Outcome)))
+ + geom_bar()
+ + geom_text(
+     aes(label=after_stat(count)),
+     stat='count',
+     nudge_y=0.125,
+     va='bottom'
+ )
+)
+
+#Scatterplot Matrix
+pairs(diabetes, pch = '.')
+
+#Correlation Matrix 
+cor(diabetes[, -9])
+```
+  
+### Linear Model  
+```{r}
+#Multiple Linear Regression
+lm_fit <- lm(Outcome ~ ., data=diabetes)
+summary(lm_fit)
+car::vif(lm_fit)
+confint(lm_fit)
+
+
+#Subset Selection
+library(leaps)
+best_subset <- regsubsets(Outcome ~ ., data = diabetes, nvmax=8)
+bss_summary <-summary(best_subset)
+names(bss_summary)
+plot(bss_summary$rss, xlab = "Number of Variables", ylab = "RSS", type = "l")
+plot(bss_summary$adjr2, xlab = "Number of Variables",
+     ylab = "Adjusted R Squared", type = "l")
+(best_modsize <- which.max(bss_summary$adjr2))
+points(best_modsize, bss_summary$adjr2[best_modsize],
+       col="red", cex = 2, pch = 20)
+plot(bss_summary$bic, xlab = "Number of Variables",
+     ylab = "BIC", type = "l")
+(best_modsize <- which.min(bss_summary$bic))
+points(best_modsize, bss_summary$bic[best_modsize],
+       col="red", cex = 2, pch = 20)
+#Coefficients for Best Model
+coef(best_subset, best_modsize)
+```
+
+
+### Logistic Regression Model  
+```{r}
+diabetes$Outcome <- as.factor(diabetes$Outcome)
+#Fitting  
+glm_fit <- glm(Outcome ~ ., data = diabetes, family = binomial)
+summary(glm_fit)
+
+#Model Summary
+coef(glm_fit)
+summary(glm_fit)$coefficients
+summary(glm_fit)$coefficients[, 4] #p-values
+
+#Prediction Accuracy
+glm_probs <-  predict(glm_fit, type = 'response')
+glm_probs[1:10]
+glm_pred <- rep('0', 392)
+glm_pred[glm_probs > 0.5] <- '1'
+table(glm_pred, diabetes$Outcome)
+
+((233 + 74) / 392) #prediction accuracy
+mean(glm_pred == diabetes$Outcome)
+
+#Performance Evaluation (ROC curve)
+roc <- function(threshold, pred_pr, Outcome) {
+  pred_class <- rep("0", length(Outcome))
+  pred_class[pred_pr > threshold] <- "1"
+  FP_rate <- sum(pred_class != Outcome & pred_class == "1")/sum(Outcome == "0")
+  TP_rate <- sum(pred_class == Outcome & pred_class == "1")/sum(Outcome == "1")
+  return(c(FP_rate, TP_rate))
+}
+THRESHOLD <- seq(0.01, 0.99, by = 0.01)
+## Each row records the FP and FN rates for one threshold
+Rates <- matrix(NA, nrow = length(THRESHOLD), ncol = 2)
+for (i in seq_along(THRESHOLD)) {
+  threshold <- THRESHOLD[i]
+  Rates[i, ] <- roc(threshold, glm_probs, diabetes$Outcome)
+}
+plot(Rates[, 2] ~ Rates[, 1], type = "l", xlab = "False positive rate",
+     ylab = "True positive rate", main = "Logistic Regression")
+abline(0, 1, lty = 2)
+
+
+#Data Splitting
+#Dividing data into a training sample (70%) and a validation sample (30%)
+set.seed(1234)
+train <- sample(nrow(diabetes), 0.7*nrow(diabetes))
+diab.train <- diabetes[train,]
+diab.test <- diabetes[-train,]
+Outcome_test <- diabetes$Outcome[-train]
+
+#Fit logistic regression on training data
+glm_train <- glm(Outcome ~ . , data = diab.train, family = binomial)
+#Predict on test data
+glm_probs <- predict(object = glm_train, newdata = diab.test, type = "response")
+glm_pred <- rep("0", 118)
+glm_pred[glm_probs > 0.5] <- "1"
+table(glm_pred, Outcome_test)
+
+mean(glm_pred == Outcome_test) #Prediction Accuracy
+mean(glm_pred != Outcome_test) #Misclassification Error Rate
+
+
+#Reduced model, using two predictors with most significant p-values 
+glm.reduc <- glm(Outcome ~ Glucose + DiabetesPedigreeFunction, 
+                 data = diabetes, family = binomial, subset = train)
+#Predict on test data
+glm_probs <- predict(object = glm.reduc, newdata = diab.test, type = "response")
+glm_pred <- rep("0", 118)
+glm_pred[glm_probs > 0.5] <- "1"
+table(glm_pred, Outcome_test)
+
+mean(glm_pred == Outcome_test) #Prediction Accuracy
+(21 / (21 + 17))  #true positive rate
+
+
+#Decision Boundary (having trouble)
+plot(DiabetesPedigreeFunction ~ Glucose, data = diabetes, subset = train,
+     pch = c(15, 16)[diabetes$Outcome[train]],
+     col = c("magenta", "blue")[diabetes$Outcome[train]])
+ 
+grid_gluc <- seq(min(diabetes$Glucose[train]),
+                 max(diabetes$Glucose[train]),
+                 length.out = 100)
+grid_dpf <- seq(min(diabetes$DiabetesPedigreeFunction[train]),
+                 max(diabetes$DiabetesPedigreeFunction[train]),
+                 length.out = 100)
+gridpts <- expand.grid(Glucose = grid_gluc, DiabetesPedigreeFunction = grid_dpf)
+ 
+pred_pr <- predict(glm.reduc, gridpts, type = "response")
+pred_class <- as.factor(ifelse(pred_pr > 0.5, "1", "0"))
+ 
+points(gridpts, col = c("blue", "magenta")[pred_class], pch = ".", cex = 1)
+ 
+contour(x = grid_gluc, y = grid_dpf,
+        z = matrix(pred_pr, nrow = 100),
+        levels = 0.5, lwd = 2, drawlabels = FALSE, add = TRUE)
+
+```
+  
+   
+### Linear Discriminant Analysis  
+```{r}
+library(MASS)
+lda_fit <- lda(Outcome ~ Glucose + DiabetesPedigreeFunction, data = diabetes)
+lda_pred <- predict(lda_fit)
+lda_probs <- lda_pred$posterior[, 2]
+
+## ROC curve for LDA
+roc <- function(threshold, pred_pr, Outcome) {
+  pred_class <- rep("0", length(Outcome))
+  pred_class[pred_pr > threshold] <- "1"
+  FP_rate <- sum(pred_class != Outcome & pred_class == "1")/sum(Outcome == "0")
+  TP_rate <- sum(pred_class == Outcome & pred_class == "1")/sum(Outcome == "1")
+  return(c(FP_rate, TP_rate))
+}
+THRESHOLD <- seq(0.01, 0.99, by = 0.01)
+## Each row records the FP and FN rates for one threshold
+Rates <- matrix(NA, nrow = length(THRESHOLD), ncol = 2)
+for (i in seq_along(THRESHOLD)) {
+  threshold <- THRESHOLD[i]
+  Rates[i, ] <- roc(threshold, lda_probs, diabetes$Outcome)
+}
+plot(Rates[, 2] ~ Rates[, 1], type = "l", xlab = "False positive rate",
+     ylab = "True positive rate", main = "Logistic Regression")
+abline(0, 1, lty = 2)
+
+#Decision Boundary
+plot(DiabetesPedigreeFunction ~ Glucose, data = diabetes, subset = train,
+     pch = c(15, 16)[diabetes$Outcome[train]],
+     col = c("magenta", "blue")[diabetes$Outcome[train]])
+preds <- predict(lda_fit, gridpts)
+points(gridpts, col = c("blue", "magenta")[preds$class], pch = ".", cex = 1)
+contour(x = grid_gluc, y = grid_dpf,
+        z = matrix(preds$posterior[, 2], nrow = 100),
+        levels = 0.5, lwd = 2, drawlabels = FALSE, add = TRUE)
+
+#Data splitting
+lda_train <- lda(Outcome ~ . , data = diabetes, subset = train)
+lda_train
+plot(lda_train)
+lda_pred <- predict(lda_train, diab.test)
+lda_class <- lda_pred$class
+table(lda_class, Outcome_test)
+mean(lda_class == Outcome_test) #Prediction Accuracy
+
+head(lda_pred$posterior)
+lda_pred$posterior[1:20, 1]
+
+lda_class[1:20]
+
+sum(lda_pred$posterior[, 1] >= 0.5) # num. of obs. classified to "0" group
+sum(lda_pred$posterior[, 1] < 0.5)
+```
+  
+
+### Quadratic Discriminant Analysis  
+```{r}
+qda_fit <- qda(Outcome ~ Glucose + DiabetesPedigreeFunction, data = diabetes, 
+               subset = train)
+qda_fit
+
+#Prediction Accuracy
+qda_class <- predict(qda_fit, diab.test)$class
+table(qda_class, Outcome_test)
+mean(qda_class == Outcome_test)
+
+#Decision Boundary
+plot(DiabetesPedigreeFunction ~ Glucose, data = diabetes, subset = train,
+     pch = c(15, 16)[diabetes$Outcome[train]],
+     col = c("magenta", "blue")[diabetes$Outcome[train]])
+preds <- predict(qda_fit, gridpts)
+points(gridpts, col = c("blue", "magenta")[preds$class], pch = ".", cex = 1)
+contour(x = grid_gluc, y = grid_dpf,
+        z = matrix(preds$posterior[, 2], nrow = 100),
+        levels = 0.5, lwd = 2, drawlabels = FALSE, add = TRUE)
+```
+  
+
+### Naive Bayes  
+```{r}
+library(e1071)
+(nb_fit <- naiveBayes(Outcome ~ Glucose + DiabetesPedigreeFunction, 
+                      data = diabetes, subset = train))
+#Prediction Accuracy
+nb_class <- predict(nb_fit, diab.test)
+table(nb_class, Outcome_test)
+mean(nb_class == Outcome_test)
+
+#Decision Boundary
+plot(DiabetesPedigreeFunction ~ Glucose, data = diabetes, subset = train,
+     pch = c(15, 16)[diabetes$Outcome[train]],
+     col = c("magenta", "blue")[diabetes$Outcome[train]])
+pred_class <- predict(nb_fit, gridpts)
+pred_pr <- predict(nb_fit, gridpts, type = "raw")
+points(gridpts, col = c("blue", "magenta")[pred_class], pch = ".", cex = 1)
+contour(x = grid_gluc, y = grid_dpf,
+        z = matrix(pred_pr[, 2], nrow = 100),
+        levels = 0.5, lwd = 2, drawlabels = FALSE, add = TRUE)
+```
+  
+  
+### K-Nearest Neighbors  
+```{r}
+library(class)
+train_X <- cbind(diabetes$Glucose, diabetes$DiabetesPedigreeFunction)[train, ]
+test_X <- cbind(diabetes$Glucose, diabetes$DiabetesPedigreeFunction)[-train, ]
+train_Direction <- diabetes$Outcome[train]
+set.seed(1) # obs. could tie as nearest neighbors
+knn_pred <- knn(train_X, test_X, train_Direction, k = 1)
+table(knn_pred, Outcome_test)
+
+#Prediction Accuracy
+mean(knn_pred == Outcome_test)
+
+#Trying k = 3
+knn_pred3 <- knn(train_X, test_X, train_Direction, k = 3)
+table(knn_pred3, Outcome_test)
+
+#Prediction Accuracy
+mean(knn_pred3 == Outcome_test)
+
+#Trying k = 5
+knn_pred5 <- knn(train_X, test_X, train_Direction, k = 5)
+table(knn_pred5, Outcome_test)
+
+#Prediction Accuracy
+mean(knn_pred5 == Outcome_test)
+```
+  
+
+### Classification Trees
+```{r}
+library(tidyverse)
+library(tree)
+tree_outcome <- tree(Outcome ~ ., data = diabetes)
+summary(tree_outcome)
+
+plot(tree_outcome)
+text(tree_outcome, cex = 0.45)
+
+#Gini Index
+gini_outcome <- tree(Outcome ~ ., data = diabetes, split = "gini")
+summary(gini_outcome)
+
+#Pruning
+set.seed(2019)
+cv_outcome <- cv.tree(tree_outcome, FUN = prune.misclass)
+str(cv_outcome)
+
+plot(cv_outcome$size, cv_outcome$dev, type = "b", 
+     xlab = "Tree size", ylab = "Deviance")
+
+plot(cv_outcome$k, cv_outcome$dev, type = "b", 
+     xlab = expression(alpha), ylab = "Deviance")
+
+cv_outcome
+(best_size <- with(cv_outcome, rev(size)[which.min(rev(dev))]))
+prunetree_oc <- prune.misclass(tree_outcome, best = best_size)
+plot(prunetree_oc)
+text(prunetree_oc, cex = 0.8)
+
+#Using Split Data
+tree_oc <- tree(Outcome ~ ., data = diabetes, subset = train)
+cvtree_oc <- cv.tree(tree_oc, FUN = prune.misclass)
+plot(cvtree_oc$size, cvtree_oc$dev, type = "b", 
+     xlab = "Tree size", ylab = "Deviance")
+cvtree_oc
+(best_size2 <- with(cvtree_oc, rev(size)[which.min(rev(dev))]))
+prunetree_out <- prune.misclass(tree_oc, best = best_size2)
+tree_pred <- predict(prunetree_out, newdata = diab.test, type = "class")
+table(tree_pred, Outcome_test)
+
+#Classification Accuracy
+mean(tree_pred == Outcome_test)
+
+plot(prunetree_out)
+text(prunetree_out, cex = 0.6)
+```
+  
+
+### Boosting  
+```{r}
+library(gbm)
+library(caret)
+set.seed(1031)
+
+model_gbm = gbm(Outcome ~.,
+              data = diab.train,
+              distribution = "multinomial",
+              cv.folds = 10,
+              shrinkage = .01,
+              n.trees = 500)       # 500 tress to be built
+
+summary(model_gbm)
+```
+
+
+
+
+
+
+
+
